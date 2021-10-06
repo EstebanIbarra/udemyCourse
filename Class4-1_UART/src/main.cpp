@@ -4,6 +4,7 @@ int value;
 
 void setup() {
   Serial.begin(115200);
+  delay(1750);
 
   /* Serial.print */
   Serial.print("--- Serial.print ---");

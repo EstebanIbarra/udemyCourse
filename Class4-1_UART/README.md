@@ -9,6 +9,3 @@ La conexión serial entre dispositivos se logra siguiendo la siguiente conexión
     * Dispositivo 1 - GND   ->  Dispositivo 2 - GND
 
 Estas conexiones entre el ESP32 y la computadora ya están integradas, por lo que no es necesario hacerlas
-
-
-/** TODO: Serial.print dentro de void setup() no funciona **/
