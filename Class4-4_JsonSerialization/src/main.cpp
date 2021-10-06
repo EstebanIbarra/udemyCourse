@@ -12,6 +12,7 @@ String var4 = "Hello there";
 
 void setup() {
   Serial.begin(115200);
+  delay(1750);
 
   /* Almacenamos las variables dentro del Json */
   jsonMessage["var1"].set(var1);    // .set() e = son equivalentes
@@ -26,11 +27,11 @@ void setup() {
   nestedJsonMessage["nestedVar3"] = false;
 
   //serializeJson(jsonMessage, jsonMessageString);          // Método que serializa nuestro objeto json en una cadena de texto y lo asigna a la variable jsonMessageString
-  serializeJsonPretty(jsonMessage, jsonMessageString);    // La diferencia entre serializeJson y serializeJsonPretty solo es el formato del mensaje, uno cuenta con saltos de línea e indentaciones mientras el otro no
+  serializeJsonPretty(jsonMessage, jsonMessageString);      // La diferencia entre serializeJson y serializeJsonPretty solo es el formato del mensaje, uno cuenta con saltos de línea e indentaciones mientras el otro no
 
+  Serial.println(jsonMessageString);
 }
 
 void loop() {
-  Serial.println(jsonMessageString);
-  delay(15000);
+  
 }
