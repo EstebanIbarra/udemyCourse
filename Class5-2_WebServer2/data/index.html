@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>ESP32 Basic Web Server</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="./assets/styles.css">
+        <script type="text/javascript" src="./assets/script.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1 class="title main">ESP32 Basic Web Server</h1>
+            <img class="logo" src="./media/mockLogo.svg" alt="Test logo">
+            <form id="form" action="/led" method="GET">
+                <div class="section led">
+                    <h2 class="title">Led State</h2>
+                    <div class="led-container">
+                        <div class="led-inner">
+                            <input type="radio" name="led" value="1" class="led-radio" id="ledOn" checked>
+                            <label class="led-label" for="ledOn">On</label>
+                        </div>
+                        <div class="led-inner">
+                            <input type="radio" name="led" value="0" class="led-radio" id="ledOff">
+                            <label class="led-label" for="ledOff">Off</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="section text">
+                    <h2 class="title">Text</h2>
+                    <input type="text" name="text">
+                </div>
+                <div class="section buttons">
+                    <button type="button" class="button js-test" onclick="testJavaScript()">JavaScript Alert</button>
+                    <button type="submit" class="button submit">Send</button>
+                </div>
+            </form>
+        </main>
+    </body>
+</html>

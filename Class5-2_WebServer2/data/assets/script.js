@@ -1,0 +1,1 @@
+const testJavaScript = () => alert('This is just a JavaScript test');
