@@ -4,6 +4,10 @@ body {
     justify-content: center;
 }
 
+a {
+    text-decoration: none;
+}
+
 .main {
     font-size: 40px;
 }
@@ -26,7 +30,7 @@ body {
     flex-wrap: wrap;
 }
 
-.section {
+.section, a.section {
     width: 100%;
     margin-bottom: 2rem;
 }
@@ -62,24 +66,36 @@ body {
 
 .text input {
     margin: 0 auto;
+    width: 50%;
+    height: 100%;
 }
 
-.buttons {
+.buttons, a.buttons {
     display: grid;
 }
 
 .button {
     font-size: 16px;
-    border: none;
     padding: 15px 20px;
     border-radius: 7px;
     margin: 0 1rem 1rem;
-}
-
-.js-test {
-    background-color: #f44336;
-}
-
-.submit {
+    transition-duration: 400ms;
+    border-style: solid;
     background-color: #008CBA;
+    border-color: #008CBA;
+    border-width: 2.5px;
+}
+
+.js-test, .home {
+    background-color: #f44336;
+    border-color: #f44336;
+}
+
+.button:hover {
+    background-color: #fafafa;
+    color: #008CBA;
+}
+
+.js-test:hover, .home:hover {
+    color: #f44336;
 }
