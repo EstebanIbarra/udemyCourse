@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>ESP32 Cautive Portal</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="../assets/styles.css">
+        <script type="text/javascript" src="../assets/scanNetworks.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1 class="title main">ESP32 Cautive Portal</h1>
+            <img class="logo" src="../media/mockLogo.svg" alt="Test logo">
+            <form id="form" action="/connect" method="get">
+                <h2 class="title">Available Networks</h2>
+                <select id="networks" name="SSID" class="networks" onchange="hideInput()">
+                    <option value="default">Select your network</option>
+                </select>
+                <input type="password" name="PASS" id="password" placeholder="Password">
+                <button type="submit" class="button">Connect</button>
+            </form>
+        </main>
+    </body>
+</html>
