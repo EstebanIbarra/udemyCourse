@@ -7,13 +7,14 @@
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 
-/*    ==>  Constant Declaration  <==    */
+/*    ==>  Global Constants  <==    */
 
 #define PORT 80
 #define interruptionPin 23
 #define ledPin 2
 #define resetTime 5000
-#define rebounceTime 200
+#define overloadTime 10000
+#define debounceTime 300
 #define connectionTimeout 7000
 #define defaultAPSSID "My IoT Device"
 #define defaultAPPWD "password"
@@ -27,12 +28,17 @@ void initServer();
 void notFound(AsyncWebServerRequest *request);
 void networksRequest(AsyncWebServerRequest *request);
 void connectWiFi(AsyncWebServerRequest *request);
+void restartSequence();
+void clearPreferences();
 void IRAM_ATTR resetToDefault();
 String scanNetworks();
 
 /*    ==>  Global Variables  <==    */
 
-volatile long previousInterruptionTime = 0;
+volatile unsigned long previousInterruptionTime = 0;
+volatile unsigned long pressedTime = 0;
+volatile unsigned long unpressedTime = 0;
+volatile bool resetTrigger = false;
 long connectionTime;
 String SSID="";
 String PWD="";
@@ -47,12 +53,17 @@ void setup()
   delay(1750);
   SPIFFS.begin();
   pinMode(ledPin, OUTPUT);
-  pinMode(interruptionPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(interruptionPin), resetToDefault, FALLING);
+  pinMode(interruptionPin, INPUT_PULLDOWN);
+  attachInterrupt(digitalPinToInterrupt(interruptionPin), resetToDefault, CHANGE);
   initWiFi();
 }
 
-void loop() {}
+void loop() {
+  if (resetTrigger)
+  {
+    clearPreferences();
+  }
+}
 
 void initWiFi()
 {
@@ -62,8 +73,6 @@ void initWiFi()
   preferences.end();
   SSID.equals("") | PWD.equals("") ? initWiFiAP() : initWiFiSTA(SSID, PWD);
 }
-
-/** TODO: Debug this function: Brownout detector triggers */
 
 void initWiFiAP()
 {
@@ -97,7 +106,6 @@ void initWiFiSTA(String SSID, String PWD)
   WiFi.begin(SSID.c_str(), PWD.c_str());
   Serial.print("Connecting to ");
   Serial.print(SSID);
-
   connectionTime = millis() + connectionTimeout;
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -105,14 +113,13 @@ void initWiFiSTA(String SSID, String PWD)
     delay(100);
     if (millis() > connectionTime) break;
   }
-  switch (WiFi.status())
+  switch (WiFi.status())      // Switch case for different WiFi.status() responses
   {
   case WL_CONNECTED:
     Serial.println("\n\nSuccesful Connection");
     Serial.print("Your Station IP is: ");
     Serial.println(WiFi.localIP());
     break;
-  
   default:
     Serial.println("\nConnection Failed\n");
     initWiFiAP();
@@ -124,7 +131,7 @@ void initServer()
 {
   server.serveStatic("/", SPIFFS, "/").setDefaultFile("pub/index.html");
   server.on("/search", HTTP_GET, networksRequest);
-  server.on("/connect", HTTP_GET, connectWiFi);
+  server.on("/connect", HTTP_POST, connectWiFi);      // POST method routing
   server.onNotFound(notFound);
   server.begin();
   Serial.println("\nServer Succesfully Started");
@@ -143,8 +150,8 @@ void networksRequest(AsyncWebServerRequest *request)
 
 void connectWiFi(AsyncWebServerRequest *request)
 {
-  if (request->hasParam("SSID")) SSID = request->arg("SSID");
-  if (request->hasParam("PASS")) PWD = request->arg("PASS");
+  if (request->hasParam("SSID", true)) SSID = request->arg("SSID");     // In case of POST, second argument in hasParam() must be provided
+  if (request->hasParam("PASS", true)) PWD = request->arg("PASS");
   SSID.trim();
   PWD.trim();
   Serial.print("SSID: ");
@@ -156,34 +163,62 @@ void connectWiFi(AsyncWebServerRequest *request)
   preferences.putString("PWD", PWD);
   preferences.end();
   request->send(SPIFFS, "/pub/index.html");
+  restartSequence();
+}
+
+void restartSequence()
+{
+  Serial.println("\nRestarting your ESP32...");
   delay(2000);
   Serial.end();
   ESP.restart();
 }
 
-/** TODO: Debug this function: CPU panics */
+void clearPreferences()
+{
+  Serial.println("\nReseting to Default Configurations...\n");
+  preferences.begin(".env");
+  preferences.clear();
+  preferences.end();
+  for (int i = 0; i <= 10; i++)
+  {
+    digitalWrite(ledPin, HIGH);
+    delay(100);
+    digitalWrite(ledPin, LOW);
+    delay(100);
+  }
+  Serial.println("Reseting Complete.");
+  restartSequence();
+}
 
 void IRAM_ATTR resetToDefault()
 {
-  if (millis() - previousInterruptionTime > resetTime)
+  if (millis() - previousInterruptionTime > debounceTime)
   {
-    digitalWrite(ledPin, true);
-    Serial.println("\nResetting to Default Configurations...\n");
-    preferences.begin(".env");
-    preferences.clear();
-    preferences.end();
-    digitalWrite(ledPin, false);
-    delay(300);
-    digitalWrite(ledPin, true);
-    Serial.println("Resetting Complete.\nRestarting your ESP32...\n");
-    delay(2000);
-    digitalWrite(ledPin, false);
-    previousInterruptionTime = millis();
-    Serial.end();
-    ESP.restart();
-  } else if (millis() - previousInterruptionTime > rebounceTime)
-  {
-    Serial.println("\nMaintain the Reset button pressed for at least 5 seconds to reset to Default Configurations\n");
+    int interruptionRead = digitalRead(interruptionPin);
+    unsigned long totalPressedTime = 0;
+    if (interruptionRead)
+    {
+      digitalWrite(ledPin, HIGH);
+      pressedTime = millis();
+    } else
+    {
+      digitalWrite(ledPin, LOW);
+      unpressedTime = millis();
+      totalPressedTime = unpressedTime - pressedTime;
+    }
+    if (totalPressedTime == 0){}
+    else if (totalPressedTime < resetTime)
+    {
+      Serial.println("Maintain the Reset button pressed for at least 5 seconds to reset to Default Configurations\n");
+    } else if (totalPressedTime <= overloadTime)
+    {
+      resetTrigger = true;
+    } else
+    {
+      Serial.println("Error reading the interruption button, please try again...\n");
+    }
+    totalPressedTime = 0;
     previousInterruptionTime = millis();
   }
 }
@@ -192,7 +227,6 @@ String scanNetworks()
 {
   StaticJsonDocument<1024> networksData;
   String networksDataSerialized = "";
-
   WiFi.scanNetworks(true, false, true, 100);
   Serial.print("Scanning for networks");
   while (WiFi.scanComplete() < 0) {
@@ -200,14 +234,11 @@ String scanNetworks()
     delay(100);
   };
   Serial.println('\n');
-
   int networkQuantity = WiFi.scanComplete();
   Serial.print(networkQuantity);
   Serial.println(" networks found\n");
-  
   if (networkQuantity > 0) {
     JsonArray networks = networksData.createNestedArray("Networks");
-
     for (int i = 0; i < networkQuantity; i++) {
       String ssid = WiFi.SSID(i);
       int rssi = WiFi.RSSI(i);
@@ -217,8 +248,6 @@ String scanNetworks()
       networks[i]["RSSI"] = rssi;
       networks[i]["networkType"] = networkType;
     }
-    Serial.println('\n');
-
     serializeJson(networksData, networksDataSerialized);
   }
   return networksDataSerialized;
