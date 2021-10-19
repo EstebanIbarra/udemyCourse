@@ -1,0 +1,90 @@
+body {
+    background-color: #0b0b0b;
+    display: flex;
+    justify-content: center;
+}
+
+a {
+    text-decoration: none;
+}
+
+section, a.section {
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+section .title {
+    font-size: 30px;
+}
+
+section span {
+    display: flex;
+    justify-content: center;
+    color: #ccc;
+    font-size: 18px;
+}
+
+.main {
+    font-size: 40px;
+}
+
+.title {
+    width: 100%;
+    text-align: center;
+}
+
+.title, .button {
+    color: #fafafa;
+}
+
+.logo {
+    margin-left: 30%;
+}
+
+.buttons, a.buttons {
+    display: grid;
+}
+
+.button {
+    display: block;
+    font-size: 16px;
+    padding: 15px 20px;
+    border-radius: 7px;
+    margin: 1rem auto;
+    transition-duration: 400ms;
+    border-style: solid;
+    background-color: #008CBA;
+    border-color: #008CBA;
+    border-width: 2.5px;
+}
+
+.home {
+    background-color: #f44336;
+    border-color: #f44336;
+}
+
+.button:hover {
+    background-color: #fafafa;
+    color: #008CBA;
+}
+
+.home:hover {
+    color: #f44336;
+}
+
+.d-none {
+    display: none !important;
+}
+
+#networks, #password {
+    display: block;
+    margin-bottom: 1rem;
+}
+
+#networks {
+    width: 100%;
+}
+
+#password {
+    width: 98%;
+}
